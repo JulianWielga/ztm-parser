@@ -60,18 +60,26 @@ function getFilePath(address) {
 }
 
 function extract() {
-    return new Promise(function (resolve, reject) {
-        new _7z().extractFull(archivePath, TMP_PATH)
-            .progress(function (files) {
-                if (files.length === 1) {
-                    dstPath = TMP_PATH + '/' + files[0];
-                    resolve();
+  return new Promise(function (resolve, reject) {
+    var file;
+    new _7z().list(archivePath)
+        .progress(function (files) {
+          file = files[0].name;
+        })
+        .then(function () {
+          new _7z().extractFull(archivePath, TMP_PATH)
+              .progress(function () {
+                if (file) {
+                  dstPath = TMP_PATH + '/' + file;
+                  resolve();
                 }
                 reject(new Error('Expected one extracted file'));
-            })
-            .then(resolve)
-            .catch(reject);
-    });
+              })
+              .then(resolve)
+              .catch(reject);
+        })
+        .catch(reject);
+  });
 }
 
 function deleteArchive() {
